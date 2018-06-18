@@ -2,7 +2,14 @@
 
 <body>
 <div>
+    <form action="/logout" method="post">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}" />
+        <input type="submit" value="Sign Out" />
+    </form>
+</div>
+<div>
     <form method="post">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}" />
         <input type="text" name="text" placeholder="Введіть повідомлення" />
         <input type="text" name="tag" placeholder="Тег" />
         <button type="submit">Додати</button>
@@ -10,6 +17,7 @@
 </div>
 <div>Список повідомлень</div>
     <form method="post" action="filter">
+        <input type="hidden" name="_csrf" value="{{_csrf.token}}" />
         <input type="text" name="filter">
         <button type="submit">Знайти</button>
     </form>
