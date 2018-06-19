@@ -1,23 +1,29 @@
 package ua.example.sweater.config;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    @Qualifier("dataSource")
+    private DataSource dataSource;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .antMatchers("/").permitAll()
+                    .antMatchers("/", "/registration").permitAll()
                     .anyRequest().authenticated()
                 .and()
                     .formLogin()
@@ -28,16 +34,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .permitAll();
     }
 
-    @Bean
     @Override
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("password")
-                        .roles("USER")
-                        .build();
-
-        return new InMemoryUserDetailsManager(user);
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        //super.configure(auth);
+        auth.jdbcAuthentication()
+                .dataSource(dataSource)
+                .passwordEncoder(NoOpPasswordEncoder.getInstance())
+                .usersByUsernameQuery("SELECT username, password, active FROM USER WHERE username = ?")
+                .authoritiesByUsernameQuery("SELECT u.username, ur.roles FROM USER u INNER JOIN USER_ROLE ur ON u.id = ur.user_id WHERE u.username = ?");
     }
 }
