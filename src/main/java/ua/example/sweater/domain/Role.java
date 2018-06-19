@@ -1,6 +1,14 @@
 package ua.example.sweater.domain;
 
-public enum Role {
+import org.springframework.security.core.GrantedAuthority;
 
-    User
+public enum Role implements GrantedAuthority {
+
+    User {
+        @Override
+        public String getAuthority() {
+            return name();
+        }
+    };
+
 }
